@@ -12,7 +12,8 @@ th{
 }
 
 td{
-    border-right:1px solid black;
+    border:1px solid black;
+    word-break: break-all;
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
