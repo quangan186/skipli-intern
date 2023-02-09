@@ -10,3 +10,12 @@ table {
 th{
     border:1px solid black;
 }
+
+td{
+    border-right:1px solid black;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
