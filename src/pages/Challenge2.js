@@ -13,8 +13,8 @@ const Challenge2 = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState()
   const [users, setUsers] = useState([]);
-  const [isLiked, setIsLiked] = useState(false);
-
+  const [favoriteUsers, setFavoriteUsers] = useState([]);
+  
   const handleSearchUser = (e) => {
     e.preventDefault();
 
@@ -57,10 +57,28 @@ const Challenge2 = () => {
     getUsers(query, pageNumber - 1, resultsPerPage)
   };
 
-  const handleLikedUser = (user) => {
+  const handleLikedUser = async(user) => {
     setSelectedUser(user)
     // setIsLiked(() => users.filter(u => u.id === user.id).length > 0 ? true : false)
+    const response = await fetch(
+      `http://localhost:8080/api/github/like`,
+      {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        body: JSON.stringify({
+          phone_number: localStorage.getItem("phoneNumber"),
+          github_user_id: user.id
+        })
+      }
+    );
+    const data = await response.json();
+    setFavoriteUsers([...data.users]);
+    console.log(data.users);
   };
+
   return (
     <div>
       <form onSubmit={handleSearchUser} className="py-8 px-12">
@@ -123,7 +141,7 @@ const Challenge2 = () => {
                           <td className="border-t border-t-black flex justify-center py-2">
                             <button onClick={() => handleLikedUser(user)}>
                               <img
-                                src={(selectedUser && selectedUser.id === user.id) ? activeHeart : heart}
+                                src={(selectedUser === favoriteUsers.filter(user => user.id === selectedUser.id)) ? activeHeart : heart}
                                 alt=""
                                 className="w-[40px] h-[40px]"
                               />
