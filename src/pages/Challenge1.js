@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Challenge1 = () => {
   const [phoneNumber, setPhoneNumber] = useState();
   const [otp, setOtp] = useState();
+  const navigate = useNavigate()
 
   const onGetCodeClick = async (e) => {
     e.preventDefault();
@@ -20,6 +22,24 @@ const Challenge1 = () => {
     console.log(data);
   };
 
+  const onValidateCodeClick = async(e) => {
+    e.preventDefault();
+    const response = await fetch(`http://localhost:8080/api/auth/verifyCode`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify({
+        phoneNumber: phoneNumber,
+        accessCode: otp
+      })
+    });
+    const data = await response.json();
+    if (data.success === true){
+      navigate('/challenge2')
+    }
+  }
   return (
     <div>
       <div className="w-full flex flex-col gap-4">
@@ -43,11 +63,11 @@ const Challenge1 = () => {
             className="w-3/5 border px-4 py-2"
             type="text"
             placeholder="Please type verify code"
-            onChange={(e) => console.log(e.target.value)}
+            onChange={(e) => setOtp(e.target.value)}
           />
           <button
             className="bg-red-500 text-white w-[200px] h-[60px]"
-            type="submit"
+            onClick={onValidateCodeClick}
           >
             Verify phone number
           </button>
