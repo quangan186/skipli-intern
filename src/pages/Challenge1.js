@@ -3,8 +3,11 @@ import { useNavigate } from "react-router-dom";
 
 const Challenge1 = () => {
   const [phoneNumber, setPhoneNumber] = useState();
+  const [returnOTP, setReturnOTP] = useState()
   const [otp, setOtp] = useState();
   const navigate = useNavigate()
+  const [err, setErr] = useState()
+  const [success, setSuccess]= useState()
 
   const onGetCodeClick = async (e) => {
     e.preventDefault();
@@ -19,7 +22,7 @@ const Challenge1 = () => {
       })
     });
     const data = await response.json();
-    console.log(data);
+    setReturnOTP(data.otp)
   };
 
   const onValidateCodeClick = async(e) => {
@@ -37,15 +40,23 @@ const Challenge1 = () => {
     });
     const data = await response.json();
     if (data.success === true){
-      navigate('/challenge2')
+      setSuccess("Validate successful")
+      localStorage.setItem('phoneNumber', phoneNumber)
+      setTimeout(() => {
+        setSuccess("")
+        setErr("")
+        navigate('/challenge2')
+      }, 2000)
+    } else{
+      setErr("Wrong code!")
     }
   }
   return (
     <div>
-      <div className="w-full flex flex-col gap-4">
-        <form className="flex gap-4 justify-center">
+      <div className="w-full flex flex-col gap-4 px-20">
+        <form className="flex gap-4 justify-center w-full">
           <input
-            className="w-3/5 border px-4 py-2"
+            className="w-4/5 border px-4 py-2"
             type="text"
             placeholder="Please type your phone number with area code (E.g: +8412345689)"
             onChange={(e) => setPhoneNumber(e.target.value)}
@@ -58,9 +69,11 @@ const Challenge1 = () => {
             Get verify code
           </button>
         </form>
+        <div className="py-4">{returnOTP ? `Your OTP to validate is ${returnOTP}`: ""}</div>
+
         <form className="flex gap-4 justify-center">
           <input
-            className="w-3/5 border px-4 py-2"
+            className="w-4/5 border px-4 py-2"
             type="text"
             placeholder="Please type verify code"
             onChange={(e) => setOtp(e.target.value)}
@@ -69,9 +82,10 @@ const Challenge1 = () => {
             className="bg-red-500 text-white w-[200px] h-[60px]"
             onClick={onValidateCodeClick}
           >
-            Verify phone number
+            Verify OTP
           </button>
         </form>
+        <span className={`${err ? 'text-red-500' : success ? 'text-green-500' : ''}`}>{err || success}</span>
       </div>
     </div>
   );

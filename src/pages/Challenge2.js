@@ -4,85 +4,87 @@ import heart from "../assets/heart.svg";
 import next from "../assets/next.svg";
 import prev from "../assets/previous.svg";
 import activeHeart from "../assets/activeHeart.svg";
+import profile from "../assets/profile.svg";
 
 const Challenge2 = () => {
   const [query, setQuery] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [resultsPerPage, setResultsPerPage] = useState(100);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchData, setSearchData] = useState({
-    query: "",
-    pageNumber: 0,
-    resultsPerPage: 0,
-  });
-
+  const [selectedUser, setSelectedUser] = useState()
   const [users, setUsers] = useState([]);
   const [isLiked, setIsLiked] = useState(false);
 
   const handleSearchUser = (e) => {
     e.preventDefault();
-    setSearchData({
-      query: query,
-      pageNumber: pageNumber,
-      resultsPerPage: resultsPerPage,
-    });
+
+    getUsers(query, pageNumber, resultsPerPage)
   };
 
-  useEffect(() => {
-    const getUsers = async () => {
-      setIsLoading(true);
-      const response = await fetch(
-        `http://localhost:8080/api/github/users/search?q=${searchData.query}&page=${searchData.pageNumber}&per_page=${searchData.resultsPerPage}`
-      );
-      const data = await response.json();
-      setUsers(data.users);
-      console.log(data.users);
-      setIsLoading(false);
-    };
+  const getUsers = async (q, page, perPage) => {
+    setIsLoading(true);
+    const response = await fetch(
+      `http://localhost:8080/api/github/users/search?q=${q}&page=${page}&per_page=${perPage}`
+    );
+    const data = await response.json();
+    setUsers(data.users);
+    console.log(data.users);
+    setIsLoading(false);
+  };
 
-    getUsers();
-  }, [searchData]);
+  // useEffect(() => {
+  //   const getUsers = async () => {
+  //     setIsLoading(true);
+  //     const response = await fetch(
+  //       `http://localhost:8080/api/github/users/search?q=${searchData.query}&page=${searchData.pageNumber}&per_page=${searchData.resultsPerPage}`
+  //     );
+  //     const data = await response.json();
+  //     setUsers(data.users);
+  //     console.log(data.users);
+  //     setIsLoading(false);
+  //   };
+
+  //   getUsers();
+  // }, [searchData]);
 
   const onNextPageClick = () => {
     setPageNumber(pageNumber + 1);
-    setSearchData({
-      query: query,
-      pageNumber: pageNumber + 1,
-      resultsPerPage: resultsPerPage,
-    });
+    getUsers(query, pageNumber + 1, resultsPerPage)
   };
 
   const onPrevPageClick = () => {
     setPageNumber(pageNumber - 1);
-    setSearchData({
-      query: query,
-      pageNumber: pageNumber - 1,
-      resultsPerPage: resultsPerPage,
-    });
+    getUsers(query, pageNumber - 1, resultsPerPage)
   };
 
-  const handleLikedUser = () => {
-    setIsLiked((state) => !state);
+  const handleLikedUser = (user) => {
+    setSelectedUser(user)
+    // setIsLiked(() => users.filter(u => u.id === user.id).length > 0 ? true : false)
   };
   return (
     <div>
       <form onSubmit={handleSearchUser} className="py-8 px-12">
-        <div className="relative border">
-          <input
-            className="h-[60px] w-full px-4 pr-20"
-            type="text"
-            placeholder="Search Github User"
-            onChange={(e) => {
-              setQuery(e.target.value);
-            }}
-          />
-          <button
-            type="submit"
-            className="absolute right-0 top-1/2 w-[40px] h-[40px] -translate-x-1/2 -translate-y-1/2"
-          >
-            <img src={search} alt="" className="" />
-          </button>
+        <div className="flex gap-4 ">
+          <div className="relative border w-full">
+            <input
+              className="h-[60px] w-full px-4 pr-20"
+              type="text"
+              placeholder="Search Github User"
+              onChange={(e) => {
+                setQuery(e.target.value);
+              }}
+            />
+            <button
+              type="submit"
+              className="absolute right-0 top-1/2 w-[40px] h-[40px] -translate-x-1/2 -translate-y-1/2"
+            >
+              <img src={search} alt="" className="" />
+            </button>
+          </div>
+
+          <button><img src={profile} alt="" className="w-[40px] h-[40px]" /></button>
         </div>
+        
 
         <div className="my-8">
           <div className="flex justify-between">
@@ -119,9 +121,9 @@ const Challenge2 = () => {
                           <td>{user.repos_url}</td>
                           <td>{user.followers_url}</td>
                           <td className="border-t border-t-black flex justify-center py-2">
-                            <button onClick={handleLikedUser}>
+                            <button onClick={() => handleLikedUser(user)}>
                               <img
-                                src={isLiked ? activeHeart : heart}
+                                src={(selectedUser && selectedUser.id === user.id) ? activeHeart : heart}
                                 alt=""
                                 className="w-[40px] h-[40px]"
                               />
@@ -145,7 +147,7 @@ const Challenge2 = () => {
                 </button>
                 <button
                   onClick={() => onNextPageClick()}
-                  className={(users && users.length > 0) || (users && users.length < resultsPerPage) ? "" : "invisible"}
+                  className={(users && (users.length > 0 && users.length <= resultsPerPage)) ? "" : "invisible"}
                 >
                   <img src={next} alt="" className="w-[40px] h-[40px]" />
                 </button>
