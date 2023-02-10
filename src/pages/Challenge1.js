@@ -1,20 +1,24 @@
 import React, { useState } from "react";
 
 const Challenge1 = () => {
-  const [phoneNumber, setPhoneNumber] = useState()
-  const [otp, setOtp] = useState()
+  const [phoneNumber, setPhoneNumber] = useState();
+  const [otp, setOtp] = useState();
 
-  const onGetCodeClick = async(e) => {
-    e.preventDefault()
-    const phoneNumberRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/
-    if (phoneNumberRegex.test(phoneNumber)){
-      const response = await fetch(`http://localhost:8080/api/auth/getCode`, phoneNumber)
-      const data = await response.json()
-      console.log(data)
-    } else{
-      console.log("Invalid!")
-    }
-  }
+  const onGetCodeClick = async (e) => {
+    e.preventDefault();
+    const response = await fetch(`http://localhost:8080/api/auth/getCode`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: JSON.stringify({
+        phoneNumber: phoneNumber,
+      })
+    });
+    const data = await response.json();
+    console.log(data);
+  };
 
   return (
     <div>
