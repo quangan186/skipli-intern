@@ -41,6 +41,7 @@ const Challenge1 = () => {
     const data = await response.json();
     if (data.success === true){
       setSuccess("Validate successful")
+      setErr("")
       localStorage.setItem('phoneNumber', phoneNumber)
       setTimeout(() => {
         setSuccess("")
@@ -53,10 +54,11 @@ const Challenge1 = () => {
   }
   return (
     <div>
+      <h1 className="text-center py-8 font-bold text-[24px]">Access Form</h1>
       <div className="w-full flex flex-col gap-4 px-20">
-        <form className="flex gap-4 justify-center w-full">
+        <form className="flex gap-4 w-full">
           <input
-            className="w-4/5 border px-4 py-2"
+            className="w-full border px-4 py-2"
             type="text"
             placeholder="Please type your phone number with area code (E.g: +8412345689)"
             onChange={(e) => setPhoneNumber(e.target.value)}
@@ -69,11 +71,12 @@ const Challenge1 = () => {
             Get verify code
           </button>
         </form>
-        <div className="py-4">{returnOTP ? `Your OTP to validate is ${returnOTP}`: ""}</div>
+
+        <div className="py-4 text-blue-500">{returnOTP ? `Your OTP to validate is ${returnOTP}` : ""}</div>
 
         <form className="flex gap-4 justify-center">
           <input
-            className="w-4/5 border px-4 py-2"
+            className="w-full border px-4 py-2"
             type="text"
             placeholder="Please type verify code"
             onChange={(e) => setOtp(e.target.value)}

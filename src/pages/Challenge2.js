@@ -5,20 +5,25 @@ import next from "../assets/next.svg";
 import prev from "../assets/previous.svg";
 import activeHeart from "../assets/activeHeart.svg";
 import profile from "../assets/profile.svg";
+import { useNavigate } from "react-router-dom";
 
 const Challenge2 = () => {
   const [query, setQuery] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [resultsPerPage, setResultsPerPage] = useState(100);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedUser, setSelectedUser] = useState()
   const [users, setUsers] = useState([]);
-  const [favoriteUsers, setFavoriteUsers] = useState([]);
-  
+  const [favoriteUsers, setFavoriteUsers] = useState(() =>
+    localStorage.getItem("favoriteUsers")
+      ? [...JSON.parse(localStorage.getItem("favoriteUsers"))]
+      : []
+  );
+  const navigate = useNavigate();
+
   const handleSearchUser = (e) => {
     e.preventDefault();
 
-    getUsers(query, pageNumber, resultsPerPage)
+    getUsers(query, pageNumber, resultsPerPage);
   };
 
   const getUsers = async (q, page, perPage) => {
@@ -32,51 +37,46 @@ const Challenge2 = () => {
     setIsLoading(false);
   };
 
-  // useEffect(() => {
-  //   const getUsers = async () => {
-  //     setIsLoading(true);
-  //     const response = await fetch(
-  //       `http://localhost:8080/api/github/users/search?q=${searchData.query}&page=${searchData.pageNumber}&per_page=${searchData.resultsPerPage}`
-  //     );
-  //     const data = await response.json();
-  //     setUsers(data.users);
-  //     console.log(data.users);
-  //     setIsLoading(false);
-  //   };
+  useEffect(() => {
+    const getFavoriteUsers = async () => {
+      const response = await fetch(
+        `http://localhost:8080/api/github/user?phone_number=${localStorage.getItem(
+          "phoneNumber"
+        )}`
+      );
+      const data = await response.json();
+      // setFavoriteUsers(data.users);
+      setFavoriteUsers([...data.favorite_github_users])
+    };
 
-  //   getUsers();
-  // }, [searchData]);
+    getFavoriteUsers();
+  }, [favoriteUsers]);
 
   const onNextPageClick = () => {
     setPageNumber(pageNumber + 1);
-    getUsers(query, pageNumber + 1, resultsPerPage)
+    getUsers(query, pageNumber + 1, resultsPerPage);
   };
 
   const onPrevPageClick = () => {
     setPageNumber(pageNumber - 1);
-    getUsers(query, pageNumber - 1, resultsPerPage)
+    getUsers(query, pageNumber - 1, resultsPerPage);
   };
 
-  const handleLikedUser = async(user) => {
-    setSelectedUser(user)
-    // setIsLiked(() => users.filter(u => u.id === user.id).length > 0 ? true : false)
-    const response = await fetch(
-      `http://localhost:8080/api/github/like`,
-      {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        },
-        body: JSON.stringify({
-          phone_number: localStorage.getItem("phoneNumber"),
-          github_user_id: user.id
-        })
-      }
-    );
-    const data = await response.json();
-    setFavoriteUsers([...data.users]);
-    console.log(data.users);
+  const handleLikedUser = async (user) => {
+    await fetch(`http://localhost:8080/api/github/like`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        phone_number: localStorage.getItem("phoneNumber"),
+        github_user_id: user.id,
+      }),
+    })
+      .then((response) => response.json())
+      .then((res) => console.log(res.msg))
+      .catch((err) => console.log(err));
   };
 
   return (
@@ -100,9 +100,10 @@ const Challenge2 = () => {
             </button>
           </div>
 
-          <button><img src={profile} alt="" className="w-[40px] h-[40px]" /></button>
+          <button onClick={() => navigate("/profile")}>
+            <img src={profile} alt="" className="w-[40px] h-[40px]" />
+          </button>
         </div>
-        
 
         <div className="my-8">
           <div className="flex justify-between">
@@ -138,19 +139,30 @@ const Challenge2 = () => {
                           <td>{user.html_url}</td>
                           <td>{user.repos_url}</td>
                           <td>{user.followers_url}</td>
-                          <td className="border-t border-t-black flex justify-center py-2">
-                            <button onClick={() => handleLikedUser(user)}>
-                              <img
-                                src={(selectedUser === favoriteUsers.filter(user => user.id === selectedUser.id)) ? activeHeart : heart}
-                                alt=""
-                                className="w-[40px] h-[40px]"
-                              />
-                            </button>
+                          <td className="border-t border-t-black flex justify-center py-2 px-4">
+                            {favoriteUsers &&
+                            favoriteUsers.find((id) => id === user.id) ? (
+                              <button onClick={() => handleLikedUser(user)}>
+                                <img
+                                  src={activeHeart}
+                                  alt=""
+                                  className="w-[40px] h-[40px]"
+                                />
+                              </button>
+                            ) : (
+                              <button onClick={() => handleLikedUser(user)}>
+                                <img
+                                  src={heart}
+                                  alt=""
+                                  className="w-[40px] h-[40px]"
+                                />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
                     })
-                  : ""}
+                  : <div className="py-4 font-bold text-[16px] px-2">No result found!</div>}
               </table>
 
               <div className="flex my-8 gap-4 justify-center items-center">
@@ -160,12 +172,20 @@ const Challenge2 = () => {
                 >
                   <img src={prev} alt="" className="w-[40px] h-[40px]" />
                 </button>
-                <button className="w-[40px] h-[40px] border">
+                <button className={`w-[40px] h-[40px] border ${
+                  users && users.length > 0
+                  ? ""
+                  : "invisible"
+                }`}>
                   {pageNumber}
                 </button>
                 <button
                   onClick={() => onNextPageClick()}
-                  className={(users && (users.length > 0 && users.length <= resultsPerPage)) ? "" : "invisible"}
+                  className={
+                    users && users.length > 0 && users.length <= resultsPerPage
+                      ? ""
+                      : "invisible"
+                  }
                 >
                   <img src={next} alt="" className="w-[40px] h-[40px]" />
                 </button>
